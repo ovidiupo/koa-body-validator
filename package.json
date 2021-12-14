@@ -1,0 +1,17 @@
+{
+  "name": "koa-body-validator",
+  "version": "1.0.0",
+  "description": "",
+  "main": "validator.js",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/OvidiuPo/koa-body-validator.git"
+  },
+  "keywords": [],
+  "author": "ovidiu.podina",
+  "license": "ISC",
+  "bugs": {
+    "url": "https://github.com/OvidiuPo/koa-body-validator/issues"
+  },
+  "homepage": "https://github.com/OvidiuPo/koa-body-validator#readme"
+}
