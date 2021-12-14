@@ -1,6 +1,6 @@
-module.exports = { isString, isNumber, isEmail, isComplexPassword };
+module.exports = { verifyBody, isString, isNumber, isEmail, isComplexPassword };
 
-exports.verifyBody = function (...validation) {
+function verifyBody(...validation) {
     return async (ctx, next) => {
         const body = ctx.request.body;
 
