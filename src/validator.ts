@@ -101,6 +101,16 @@ class Validator implements ValidatorType {
         return this;
     }
 
+    // function isBoolean({ key }) {
+    //     return {
+    //         key,
+    //         cb: (ctx, object) => {
+    //             const value = ctx.request.body[object.key];
+    //             ctx.assert(typeof value === 'boolean', 400, `"${object.key}" must be true or false!`);
+    //         }
+    //     };
+    // }
+
     validate(value: any, key: string, errors: string[]): { errors: string[] } {
         if (!this.hasToBeDefined && value === undefined) {
             return {errors};
