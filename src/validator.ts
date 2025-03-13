@@ -123,20 +123,20 @@ class Validator implements ValidatorType {
                 const _key = index !== null ? `"${key}.${index}"` : `"${key}"`;
 
                 if (typeof value !== 'string') {
-                    errors.push(`"${_key}" must be a string`);
+                    errors.push(`${_key} must be a string`);
                     return;
                 }
 
                 if (options?.notEmpty && value.length === 0) {
-                    errors.push(`"${_key}" must not be empty`);
+                    errors.push(`${_key} must not be empty`);
                 }
 
                 if (options?.min && value.length < options.min) {
-                    errors.push(`"${_key}" must have at least ${options.min} characters`);
+                    errors.push(`${_key} must have at least ${options.min} characters`);
                 }
 
                 if (options?.max && value.length > options.max) {
-                    errors.push(`"${_key}" must have at most ${options.max} characters`);
+                    errors.push(`${_key} must have at most ${options.max} characters`);
                 }
             }
 
@@ -167,9 +167,10 @@ class Validator implements ValidatorType {
                 const _key = index !== null ? `"${key}.${index}"` : `"${key}"`;
 
                 if (!emailRegex.test(value)) {
-                    errors.push(`"${_key}" must be a valid email format`);
+                    errors.push(`${_key} must be a valid email format`);
                 }
             }
+
             if (!each) {
                 isEmailValidatorCheck(value, null);
                 return;
@@ -199,7 +200,7 @@ class Validator implements ValidatorType {
                 const _key = index !== null ? `"${key}.${index}"` : `"${key}"`;
 
                 if (!regExp!.test(value)) {
-                    errors.push(`"${_key}" must be a strong password`);
+                    errors.push(`${_key} must be a strong password`);
                 }
             }
 
@@ -229,7 +230,7 @@ class Validator implements ValidatorType {
                 const _key = index !== null ? `"${key}.${index}"` : `"${key}"`;
 
                 if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-                    errors.push(`"${_key}" must be an object`);
+                    errors.push(`${_key} must be an object`);
                     value = {};
                 }
 
@@ -273,16 +274,16 @@ class Validator implements ValidatorType {
                 const _key = index !== null ? `"${key}.${index}"` : `"${key}"`;
 
                 if (typeof value === 'number' && !isNaN(value)) {
-                    errors.push(`"${_key}" must be a number`);
+                    errors.push(`${_key} must be a number`);
                     return;
                 }
 
                 if (options?.min && value.length < options.min) {
-                    errors.push(`"${_key}" must have at least ${options.min}`);
+                    errors.push(`${_key} must have at least ${options.min}`);
                 }
 
                 if (options?.max && value.length > options.max) {
-                    errors.push(`"${_key}" must have at most ${options.max}`);
+                    errors.push(`${_key} must have at most ${options.max}`);
                 }
             }
 

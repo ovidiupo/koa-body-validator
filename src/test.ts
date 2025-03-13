@@ -3,6 +3,7 @@ import {Context} from "koa";
 
 stringTest();
 isObjectArray();
+loginSchema();
 
 function stringTest() {
     const definedStringTest = {
@@ -69,9 +70,48 @@ function isObjectArray() {
         }
     }
     validateRequestBody(tests.body)(...koaMiddleware(tests.validators, {}));
-    validateRequestBody(tests.body)(...koaMiddleware(tests.validators, { users: {} }));
-    validateRequestBody(tests.body)(...koaMiddleware(tests.validators, { users: [] }));
-    validateRequestBody(tests.body)(...koaMiddleware(tests.validators, { users: [ {firstName: 'Ovidiu' }, { firstName: 12}] }));
+    validateRequestBody(tests.body)(...koaMiddleware(tests.validators, {users: {}}));
+    validateRequestBody(tests.body)(...koaMiddleware(tests.validators, {users: []}));
+    validateRequestBody(tests.body)(...koaMiddleware(tests.validators, {users: [{firstName: 'Ovidiu'}, {firstName: 12}]}));
+}
+
+function loginSchema() {
+    const schema = {
+        email: isDefined().isEmail(),
+        password: isDefined().isComplexPassword()
+    };
+
+    const validators = [{
+        key: 'email',
+        validators: ['isDefined', 'isEmail'],
+    }, {
+        key: 'password',
+        validators: ['isDefined', 'isComplexPassword'],
+    }];
+
+    const tests = [
+        {},
+        {
+            email: 'ovidiu'
+        },
+        {
+            email: 'ovidiu.podina@example.com'
+        },
+        {
+            email: 'ovidiu.podina@example.com',
+            password: '123456',
+        },
+        {
+            email: 'ovidiu.podina@example.com',
+            password: 'Test123!',
+        }
+    ];
+
+    validateRequestBody(schema)(...koaMiddleware(validators, tests[0]));
+    validateRequestBody(schema)(...koaMiddleware(validators, tests[1]));
+    validateRequestBody(schema)(...koaMiddleware(validators, tests[2]));
+    validateRequestBody(schema)(...koaMiddleware(validators, tests[3]));
+    validateRequestBody(schema)(...koaMiddleware(validators, tests[4]));
 }
 
 function koaMiddleware(validators: Array<{
