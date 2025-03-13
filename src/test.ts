@@ -2,6 +2,7 @@ import {isDefined, isOptional, validateRequestBody} from "./validator";
 import {Context} from "koa";
 
 stringTest();
+isObjectArray();
 
 function stringTest() {
     const definedStringTest = {
@@ -52,7 +53,25 @@ function stringTest() {
     validateRequestBody(definedStringTestWithMinLength.body)(...koaMiddleware(definedStringTestWithMinLength.validators, {}));
     validateRequestBody(definedStringTestWithMinLength.body)(...koaMiddleware(definedStringTestWithMinLength.validators, {name: 12}));
     validateRequestBody(definedStringTestWithMinLength.body)(...koaMiddleware(definedStringTestWithMinLength.validators, {first_name: 'Ovidiu'}));
+}
 
+function isObjectArray() {
+    const tests = {
+        validators: [{
+            key: 'users',
+            validators: ['isDefined', 'isObject({firstName: isDefined().isString(), lastName: isDefined().isString()}, {each: true})'],
+        }],
+        body: {
+            users: isDefined().isObject({
+                firstName: isDefined().isString({min: 5, max: 20}),
+                lastName: isDefined().isString({min: 5, max: 20}),
+            }, {each: true})
+        }
+    }
+    validateRequestBody(tests.body)(...koaMiddleware(tests.validators, {}));
+    validateRequestBody(tests.body)(...koaMiddleware(tests.validators, { users: {} }));
+    validateRequestBody(tests.body)(...koaMiddleware(tests.validators, { users: [] }));
+    validateRequestBody(tests.body)(...koaMiddleware(tests.validators, { users: [ {firstName: 'Ovidiu' }, { firstName: 12}] }));
 }
 
 function koaMiddleware(validators: Array<{

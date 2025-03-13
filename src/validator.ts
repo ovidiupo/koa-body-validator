@@ -119,37 +119,40 @@ class Validator implements ValidatorType {
         const {each = false} = options || {};
 
         return (value: any, key: string, errors: string[]) => {
-            const isStringValidatorChecks = (value: any) => {
+            const isStringValidatorChecks = (value: any, index: number | null) => {
+                const _key = index !== null ? `"${key}.${index}"` : `"${key}"`;
+
                 if (typeof value !== 'string') {
-                    errors.push(`"${key}" must be a string`);
+                    errors.push(`"${_key}" must be a string`);
                     return;
                 }
 
                 if (options?.notEmpty && value.length === 0) {
-                    errors.push(`"${key}" must not be empty`);
+                    errors.push(`"${_key}" must not be empty`);
                 }
 
                 if (options?.min && value.length < options.min) {
-                    errors.push(`"${key}" must have at least ${options.min} characters`);
+                    errors.push(`"${_key}" must have at least ${options.min} characters`);
                 }
 
                 if (options?.max && value.length > options.max) {
-                    errors.push(`"${key}" must have at most ${options.max} characters`);
+                    errors.push(`"${_key}" must have at most ${options.max} characters`);
                 }
             }
 
             if (!each) {
-                isStringValidatorChecks(value);
+                isStringValidatorChecks(value, null);
                 return;
             }
 
             if (!Array.isArray(value)) {
                 errors.push(`"${key}" must be an array!`);
+                return;
             }
 
             const length = value.length;
             for (let i = 0; i < length; i++) {
-                isStringValidatorChecks(value[i]);
+                isStringValidatorChecks(value[i], i);
             }
         }
     }
@@ -160,13 +163,15 @@ class Validator implements ValidatorType {
         const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
         return (value: any, key: string, errors: string[]) => {
-            const isEmailValidatorCheck = (value: any) => {
+            const isEmailValidatorCheck = (value: any, index: number | null) => {
+                const _key = index !== null ? `"${key}.${index}"` : `"${key}"`;
+
                 if (!emailRegex.test(value)) {
-                    errors.push(`"${key}" must be a valid email format`);
+                    errors.push(`"${_key}" must be a valid email format`);
                 }
             }
             if (!each) {
-                isEmailValidatorCheck(value);
+                isEmailValidatorCheck(value, null);
                 return;
             }
 
@@ -177,7 +182,7 @@ class Validator implements ValidatorType {
 
             const length = value.length;
             for (let i = 0; i < length; i++) {
-                isEmailValidatorCheck(value[i]);
+                isEmailValidatorCheck(value[i], i);
             }
 
         }
@@ -190,14 +195,16 @@ class Validator implements ValidatorType {
         } = options || {};
 
         return (value: any, key: string, errors: string[]) => {
-            const isComplexPasswordValidatorChecks = (value: any) => {
+            const isComplexPasswordValidatorChecks = (value: any, index: number | null) => {
+                const _key = index !== null ? `"${key}.${index}"` : `"${key}"`;
+
                 if (!regExp!.test(value)) {
-                    errors.push(`"${key}" must be a strong password`);
+                    errors.push(`"${_key}" must be a strong password`);
                 }
             }
 
             if (!each) {
-                isComplexPasswordValidatorChecks(value);
+                isComplexPasswordValidatorChecks(value, null);
                 return;
             }
 
@@ -208,7 +215,7 @@ class Validator implements ValidatorType {
 
             const length = value.length;
             for (let i = 0; i < length; i++) {
-                isComplexPasswordValidatorChecks(value[i]);
+                isComplexPasswordValidatorChecks(value[i], i);
             }
 
         }
@@ -218,9 +225,11 @@ class Validator implements ValidatorType {
         const {each = false} = options || {};
 
         return (value: any, key: string, errors: string[]) => {
-            const isObjectValidatorChecks = (value: any) => {
+            const isObjectValidatorChecks = (value: any, index: number | null) => {
+                const _key = index !== null ? `"${key}.${index}"` : `"${key}"`;
+
                 if (typeof value !== 'object' || value === null || Array.isArray(value)) {
-                    errors.push(`"${key}" must be an object`);
+                    errors.push(`"${_key}" must be an object`);
                     value = {};
                 }
 
@@ -228,7 +237,7 @@ class Validator implements ValidatorType {
                     for (const [nestedKey, nestedValidator] of Object.entries(validators)) {
                         const nestedValue = value[nestedKey];
 
-                        const {errors: nestedErrors} = nestedValidator.validate(nestedValue, `${key}.${nestedKey}`, []);
+                        const {errors: nestedErrors} = nestedValidator.validate(nestedValue, `${_key}.${nestedKey}`, []);
 
                         if (nestedErrors.length) {
                             errors.push(...nestedErrors);
@@ -238,18 +247,19 @@ class Validator implements ValidatorType {
             }
 
             if (!each) {
-                isObjectValidatorChecks(value);
+                isObjectValidatorChecks(value, null);
                 return;
             }
 
             if (!Array.isArray(value)) {
                 errors.push(`"${key}" must be an array!`);
+                return;
             }
 
             const length = value.length;
 
             for (let i = 0; i < length; i++) {
-                isObjectValidatorChecks(value[i]);
+                isObjectValidatorChecks(value[i], i);
             }
 
         }
@@ -259,33 +269,36 @@ class Validator implements ValidatorType {
         const {each = false} = options || {};
 
         return (value: any, key: string, errors: string[]) => {
-            const isNumberValidatorChecks = (value: any) => {
+            const isNumberValidatorChecks = (value: any, index: number | null) => {
+                const _key = index !== null ? `"${key}.${index}"` : `"${key}"`;
+
                 if (typeof value === 'number' && !isNaN(value)) {
-                    errors.push(`"${key}" must be a number`);
+                    errors.push(`"${_key}" must be a number`);
                     return;
                 }
 
                 if (options?.min && value.length < options.min) {
-                    errors.push(`"${key}" must have at least ${options.min}`);
+                    errors.push(`"${_key}" must have at least ${options.min}`);
                 }
 
                 if (options?.max && value.length > options.max) {
-                    errors.push(`"${key}" must have at most ${options.max}`);
+                    errors.push(`"${_key}" must have at most ${options.max}`);
                 }
             }
 
             if (!each) {
-                isNumberValidatorChecks(value);
+                isNumberValidatorChecks(value, null);
                 return;
             }
 
             if (!Array.isArray(value)) {
                 errors.push(`"${key}" must be an array!`);
+                return;
             }
 
             const length = value.length;
             for (let i = 0; i < length; i++) {
-                isNumberValidatorChecks(value[i]);
+                isNumberValidatorChecks(value[i], i);
             }
         }
     }
@@ -294,9 +307,10 @@ class Validator implements ValidatorType {
         const {each = false} = options || {};
 
         return (value: any, key: string, errors: string[]) => {
-            const isDateValidatorChecks = (value: any) => {
+            const isDateValidatorChecks = (value: any, index: number | null) => {
+                const _key = index !== null ? `"${key}.${index}"` : `"${key}"`;
                 if (typeof value === 'string' && !isNaN(Date.parse(value))) {
-                    errors.push(`"${key}" must be a valid ISO date string`);
+                    errors.push(`${_key} must be a valid ISO date string`);
                     return;
                 }
 
@@ -304,17 +318,18 @@ class Validator implements ValidatorType {
             }
 
             if (!each) {
-                isDateValidatorChecks(value);
+                isDateValidatorChecks(value, null);
                 return;
             }
 
             if (!Array.isArray(value)) {
                 errors.push(`"${key}" must be an array!`);
+                return;
             }
 
             const length = value.length;
             for (let i = 0; i < length; i++) {
-                isDateValidatorChecks(value[i]);
+                isDateValidatorChecks(value[i], i);
             }
         }
     }
