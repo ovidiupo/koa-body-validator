@@ -1,4 +1,4 @@
-export interface Something {
+export interface ValidationSchema {
     [key: string]: ValidatorType;
 }
 
@@ -6,15 +6,20 @@ export interface ValidatorOptions {
     each?: boolean;
 }
 
-export interface StringValidatorOptions extends ValidatorOptions {
+export interface MinMaxValidatorOptions extends ValidatorOptions {
     min?: number;
     max?: number;
+}
+
+export interface StringValidatorOptions extends MinMaxValidatorOptions {
     notEmpty?: boolean
 }
 
-export interface ValidatorFnc {
-    (value: any, key: string, errors: string[]): void;
+export interface RegExpValidatorOptions extends ValidatorOptions {
+    regExp?: RegExp;
 }
+
+export type ValidatorFnc = (value: any, key: string, errors: string[]) => void;
 
 export interface ValidatorType {
     hasToBeDefined: boolean;
@@ -32,7 +37,7 @@ export interface ValidatorType {
 
     isComplexPassword(options?: ValidatorOptions & { regExp?: RegExp }): ValidatorType;
 
-    isObject(validators: Something, options?: ValidatorOptions): ValidatorType;
+    isObject(validators: ValidationSchema, options?: ValidatorOptions): ValidatorType;
 
     isNumber(options?: ValidatorOptions & { min?: number; max?: number }): ValidatorType;
 

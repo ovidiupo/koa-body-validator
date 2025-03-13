@@ -1,8 +1,16 @@
 import {Context} from 'koa';
 import "koa-body/lib/index";
-import {Something, StringValidatorOptions, ValidatorFnc, ValidatorOptions, ValidatorType} from "./validator.type";
+import {
+    MinMaxValidatorOptions,
+    RegExpValidatorOptions,
+    ValidationSchema,
+    StringValidatorOptions,
+    ValidatorFnc,
+    ValidatorOptions,
+    ValidatorType
+} from "./validator.type";
 
-export function validateRequestBody(validations: Something) {
+export function validateRequestBody(validations: ValidationSchema) {
     return async (ctx: Context, next: () => Promise<void>) => {
         const body = ctx.request.body;
 
@@ -24,7 +32,7 @@ export function isOptional() {
     return new Validator().isOptional();
 }
 
-function validate(body: any, validations: Something) {
+function validate(body: any, validations: ValidationSchema) {
     const _errors: string[] = [];
 
     for (const [key, validator] of Object.entries(validations)) {
@@ -73,24 +81,23 @@ class Validator implements ValidatorType {
         return this;
     }
 
-    // TODO add interface for options type
-    isComplexPassword(options?: ValidatorOptions & { regExp?: RegExp }): ValidatorType {
+    isComplexPassword(options?: RegExpValidatorOptions): ValidatorType {
         this.validators.push(this.isComplexPasswordValidator(options));
         return this;
     }
 
-    isObject(validators: Something, options?: ValidatorOptions): ValidatorType {
+    isObject(validators: ValidationSchema, options?: ValidatorOptions): ValidatorType {
         this.validators.push(this.isObjectValidator(validators, options));
         return this;
     }
 
-    // TODO: implement it + add interface for options type
-    isNumber(options?: ValidatorOptions & { min?: number; max?: number }): ValidatorType {
+    isNumber(options?: MinMaxValidatorOptions): ValidatorType {
+        this.validators.push(this.isNumberValidator(options));
         return this;
     }
 
-    // TODO: implement it + add interface for options type
     isDate(options?: ValidatorOptions): ValidatorType {
+        this.validators.push(this.isDateValidator(options));
         return this;
     }
 
@@ -176,7 +183,7 @@ class Validator implements ValidatorType {
         }
     }
 
-    private isComplexPasswordValidator = (options?: ValidatorOptions & { regExp?: RegExp }): ValidatorFnc => {
+    private isComplexPasswordValidator = (options?: RegExpValidatorOptions): ValidatorFnc => {
         const {
             each = false,
             regExp = /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[@$!%*?&])[A-Za-z\d@$!%*?&]{8,}$/
@@ -207,7 +214,7 @@ class Validator implements ValidatorType {
         }
     }
 
-    private isObjectValidator = (validators: Something, options?: ValidatorOptions): ValidatorFnc => {
+    private isObjectValidator = (validators: ValidationSchema, options?: ValidatorOptions): ValidatorFnc => {
         const {each = false} = options || {};
 
         return (value: any, key: string, errors: string[]) => {
@@ -245,6 +252,70 @@ class Validator implements ValidatorType {
                 isObjectValidatorChecks(value[i]);
             }
 
+        }
+    }
+
+    private isNumberValidator = (options?: MinMaxValidatorOptions): ValidatorFnc => {
+        const {each = false} = options || {};
+
+        return (value: any, key: string, errors: string[]) => {
+            const isNumberValidatorChecks = (value: any) => {
+                if (typeof value === 'number' && !isNaN(value)) {
+                    errors.push(`"${key}" must be a number`);
+                    return;
+                }
+
+                if (options?.min && value.length < options.min) {
+                    errors.push(`"${key}" must have at least ${options.min}`);
+                }
+
+                if (options?.max && value.length > options.max) {
+                    errors.push(`"${key}" must have at most ${options.max}`);
+                }
+            }
+
+            if (!each) {
+                isNumberValidatorChecks(value);
+                return;
+            }
+
+            if (!Array.isArray(value)) {
+                errors.push(`"${key}" must be an array!`);
+            }
+
+            const length = value.length;
+            for (let i = 0; i < length; i++) {
+                isNumberValidatorChecks(value[i]);
+            }
+        }
+    }
+
+    private isDateValidator = (options?: ValidatorOptions) => {
+        const {each = false} = options || {};
+
+        return (value: any, key: string, errors: string[]) => {
+            const isDateValidatorChecks = (value: any) => {
+                if (typeof value === 'string' && !isNaN(Date.parse(value))) {
+                    errors.push(`"${key}" must be a valid ISO date string`);
+                    return;
+                }
+
+                // TODO: add min/max validators
+            }
+
+            if (!each) {
+                isDateValidatorChecks(value);
+                return;
+            }
+
+            if (!Array.isArray(value)) {
+                errors.push(`"${key}" must be an array!`);
+            }
+
+            const length = value.length;
+            for (let i = 0; i < length; i++) {
+                isDateValidatorChecks(value[i]);
+            }
         }
     }
 }

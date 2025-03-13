@@ -1,82 +1,85 @@
-import {Context} from 'koa';
-import "koa-body/lib/index";
-import {Validator} from "./validator.type";
+import {isDefined, isOptional, validateRequestBody} from "./validator";
+import {Context} from "koa";
 
-export function validateRequestBody(validations: Validator) {
-    return async (ctx: Context, next: () => Promise<void>) => {
-        const body = ctx.request.body;
+stringTest();
 
-        const errors = validate(body, validations);
-
-        if (errors.length) {
-            ctx.throw(400, {errors});
-        }
-
-        await next();
-    }
-}
-
-export function isDefined() {
-    return createValidator().isDefined();
-}
-
-export function isString() {
-    return createValidator().isString();
-}
-
-function validate(body: any, validations: Validator) {
-    const _errors: string[] = [];
-
-    for (const [key, validator] of Object.entries(validations)) {
-        const value = body[key];
-
-        if (value === undefined && !validator.hasToBeDefined) {
-            continue;
-        }
-
-        const {errors} = validator.validate(value, key, []);
-
-        if (errors?.length) {
-            _errors.push(...errors);
+function stringTest() {
+    const definedStringTest = {
+        validators: [{
+            key: 'first_name',
+            validators: ['isDefined', 'isString'],
+        }, {
+            key: 'last_name',
+            validators: ['isDefined', 'isString'],
+        }],
+        body: {
+            first_name: isDefined().isString(),
+            last_name: isDefined().isString()
         }
     }
+    validateRequestBody(definedStringTest.body)(...koaMiddleware(definedStringTest.validators, {}));
+    validateRequestBody(definedStringTest.body)(...koaMiddleware(definedStringTest.validators, {name: 12}));
+    validateRequestBody(definedStringTest.body)(...koaMiddleware(definedStringTest.validators, {first_name: ['Ovidiu']}));
+    validateRequestBody(definedStringTest.body)(...koaMiddleware(definedStringTest.validators, {first_name: ['Ovidiu', '1']}));
 
-    return _errors;
-}
 
-function createValidator(): Validator {
-    return <Validator>{
-        hasToBeDefined: false,
-        validators: [],
-        isDefined: () => {
-            this.hasToBeDefined = true;
-            this.validators.push((value: any, key: string, errors: string[]) => {
-                if (value === undefined) {
-                    errors.push(`"${key}" should not be null or undefined!`);
-                }
-            });
-            return this;
-        },
-        isString: () => {
-            this.validators.push((value: any, key: string, errors: string[]) => {
-                if (typeof value !== 'string') {
-                    errors.push(`"${key}" must be a string`);
-                }
-            });
-            return this;
-        },
-        validate: (value: any, key: string, errors: string[]) => {
-            if (!this.hasToBeDefined && value === undefined) {
-                return {errors};
-            }
-
-            const size = this.validators.length;
-
-            for (let i = 0; i < size; i++) {
-                this.validators[i](value, key, errors);
-            }
-
-            return {errors};
+    const notDefinedStringTest = {
+        validators: [{
+            key: 'name',
+            validators: ['isOptional', 'isString']
+        }],
+        body: {
+            name: isOptional().isString()
         }
-    };
+    }
+    validateRequestBody(notDefinedStringTest.body)(...koaMiddleware(notDefinedStringTest.validators, {}));
+    validateRequestBody(notDefinedStringTest.body)(...koaMiddleware(notDefinedStringTest.validators, {name: 12}));
+    validateRequestBody(notDefinedStringTest.body)(...koaMiddleware(notDefinedStringTest.validators, {name: 'Ovidiu'}));
+
+    const definedStringTestWithMinLength = {
+        validators: [{
+            key: 'first_name',
+            validators: ['isDefined', 'isString({min: 5})'],
+        }, {
+            key: 'last_name',
+            validators: ['isDefined', 'isString({min: 5})'],
+        }],
+        body: {
+            first_name: isDefined().isString({min: 5}),
+            last_name: isDefined().isString({min: 5})
+        }
+    }
+    validateRequestBody(definedStringTestWithMinLength.body)(...koaMiddleware(definedStringTestWithMinLength.validators, {}));
+    validateRequestBody(definedStringTestWithMinLength.body)(...koaMiddleware(definedStringTestWithMinLength.validators, {name: 12}));
+    validateRequestBody(definedStringTestWithMinLength.body)(...koaMiddleware(definedStringTestWithMinLength.validators, {first_name: 'Ovidiu'}));
+
 }
+
+function koaMiddleware(validators: Array<{
+    key: string,
+    validators: string[]
+}>, body: any): [Context, () => Promise<void>] {
+    body ||= {}
+
+    return [
+        context(validators, body),
+        async () => {
+            console.log('Done: ', body);
+        }
+    ]
+}
+
+function context(validators: Array<{ key: string, validators: string[] }>, body: any) {
+    console.log('\nTesting:', body, `for:`, validators.reduce((result, validator) => {
+        result += '\n\x1b[31m' + validator.key + '\x1b[0m: \x1b[33m' + validator.validators.join(', ') + '\x1b[0m';
+        return result;
+    }, ''));
+
+    return {
+        request: {body},
+        throw: (err: number, message: string) => {
+            console.log('Error: ', err, message);
+        }
+    } as unknown as Context
+}
+
