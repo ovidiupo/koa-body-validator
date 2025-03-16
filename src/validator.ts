@@ -101,15 +101,10 @@ class Validator implements ValidatorType {
         return this;
     }
 
-    // function isBoolean({ key }) {
-    //     return {
-    //         key,
-    //         cb: (ctx, object) => {
-    //             const value = ctx.request.body[object.key];
-    //             ctx.assert(typeof value === 'boolean', 400, `"${object.key}" must be true or false!`);
-    //         }
-    //     };
-    // }
+    isBoolean(options?: ValidatorOptions): ValidatorType {
+        this.validators.push(this.isBooleanValidator(options));
+        return this;
+    }
 
     validate(value: any, key: string, errors: string[]): { errors: string[] } {
         if (!this.hasToBeDefined && value === undefined) {
@@ -341,6 +336,35 @@ class Validator implements ValidatorType {
             const length = value.length;
             for (let i = 0; i < length; i++) {
                 isDateValidatorChecks(value[i], i);
+            }
+        }
+    }
+
+    private isBooleanValidator = (options?: ValidatorOptions) => {
+        const {each = false} = options || {};
+
+        return (value: any, key: string, errors: string[]) => {
+            const isBooleanValidatorChecks = (value: any, index: number | null) => {
+                const _key = index !== null ? `"${key}.${index}"` : `"${key}"`;
+                if (typeof value !== 'boolean') {
+                    errors.push(`${_key} must be true of false`);
+                    return;
+                }
+            }
+
+            if (!each) {
+                isBooleanValidatorChecks(value, null);
+                return;
+            }
+
+            if (!Array.isArray(value)) {
+                errors.push(`"${key}" must be an array!`);
+                return;
+            }
+
+            const length = value.length;
+            for (let i = 0; i < length; i++) {
+                isBooleanValidatorChecks(value[i], i);
             }
         }
     }
